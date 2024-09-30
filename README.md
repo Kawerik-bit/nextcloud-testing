@@ -35,6 +35,11 @@ Deploy each of the kubernetes yaml config files to your cluster via: kubectl app
 
 You can check the status of your application on the cluster via: kubectl get pods / kubectl get svc / kubectl describe pod <pod-name>
 
+For more information reffer to:
+
+https://kubernetes.io/docs/home/
+https://helm.sh/docs/
+
 
 
 
