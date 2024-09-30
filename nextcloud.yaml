@@ -1,0 +1,96 @@
+---
+version: "3"
+services:
+  nextcloud:
+    image: lscr.io/linuxserver/nextcloud
+    container_name: nextcloud
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Sofia
+      - NEXTCLOUD_REDIS_HOST=redis
+      - NEXTCLOUD_REDIS_PORT=6379
+    volumes:
+      - /path/to/config:/config
+      - /path/to/data:/data
+    depends_on:
+      - mariadb
+      - redis
+    networks:
+      - nextcloud_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+
+  mariadb:
+    image: lscr.io/linuxserver/mariadb
+    container_name: mariadb
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - MYSQL_ROOT_PASSWORD="Password"
+      - TZ=Europe/Sofia
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER="kawerik"
+      - MYSQL_PASSWORD="Testbit123^"
+    volumes:
+      - /path/to/config:/config
+      - /path/to/db:/var/lib/mysql
+    networks:
+      - nextcloud_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+
+#  redis:
+    image: redis:alpine
+    container_name: redis
+    volumes:
+      - /path/to/redis/data:/data
+    networks:
+      - nextcloud_network
+    restart: unless-stopped
+
+  swag:
+    image: lscr.io/linuxserver/swag
+    container_name: swag
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Sofia
+      - URL="example.duckdns.org"
+      - SUBDOMAINS=wildcard
+      - VALIDATION=duckdns
+      - DUCKDNSTOKEN="Token"
+    volumes:
+      - /path/to/config:/config
+    ports:
+      - 443:443
+      - 80:80
+    networks:
+      - nextcloud_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+networks:
+  nextcloud_network:
+    driver: bridge
