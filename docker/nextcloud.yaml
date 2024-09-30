@@ -48,7 +48,7 @@ services:
       timeout: 10s
       retries: 3
 
-#  redis:
+  redis:
     image: redis:alpine
     container_name: redis
     volumes:
